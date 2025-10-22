@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { trackPixelEvent, FacebookPixelEvents } from "@/lib/facebook-pixel";
 
 interface PricingSectionProps {
@@ -35,6 +35,13 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
               </div>
             </div>
 
+            {/* Scarcity Element */}
+            <div className="text-center mb-6 mt-4">
+              <p className="text-yellow-400 font-semibold text-sm">
+                🔥 Apenas 15 vagas disponíveis este mês
+              </p>
+            </div>
+
             {/* Price Section */}
             <div className="text-center mb-12 mt-4">
               <div className="mb-4">
@@ -50,15 +57,7 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
               </div>
               <p className="text-lg text-gray-300 mt-2">ou em até 10x de R$ 99,70</p>
             </div>
-            
-            {/* Urgency */}
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-12">
-              <div className="flex items-center justify-center gap-3">
-                <Clock className="w-5 h-5 text-red-600" />
-                <p className="text-lg font-semibold text-red-700">Oferta válida por apenas 7 dias</p>
-              </div>
-            </div>
-            
+
             {/* Benefits */}
             <div className="mb-12">
               <h3 className="text-2xl font-bold mb-8 text-white">
@@ -73,7 +72,7 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
                 
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                  <span className="text-gray-300">Lives semanais com especialistas em cada área da vida nos EUA</span>
+                  <span className="text-gray-300">Lives mensais com especialistas em cada área da vida nos EUA</span>
                 </div>
                 
                 <div className="flex items-start gap-3">
@@ -95,6 +94,9 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
             
             {/* CTA Button */}
             <div className="space-y-4">
+              <p className="text-center text-green-400 text-sm font-medium mb-2">
+                🔒 Compra 100% segura • Acesso instantâneo após a confirmação
+              </p>
               <Button 
                 onClick={() => {
                   // Track Facebook Pixel conversion event
@@ -115,8 +117,13 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
               <div className="flex items-center justify-center gap-6 text-sm text-gray-400">
                 <span>✓ Compra 100% Segura</span>
                 <span>✓ Acesso Imediato</span>
-                <span>✓ Garantia de 7 dias</span>
+                <span>✓ Garantia de 30 dias</span>
               </div>
+
+              {/* Additional Trust Elements */}
+              <p className="text-center text-sm text-gray-500 mt-4">
+                Cancele quando quiser • Sem fidelidade • Reembolso total em até 30 dias
+              </p>
             </div>
           </div>
           

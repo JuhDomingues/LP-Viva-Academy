@@ -8,7 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev        # Start development server on localhost:8080
 npm run build      # Production build
 npm run build:dev  # Development mode build
-npm run lint       # Run ESLint code checking
+npm run lint       # Run ESLint code 
+checking
 npm run preview    # Preview production build
 npm i              # Install dependencies
 ```

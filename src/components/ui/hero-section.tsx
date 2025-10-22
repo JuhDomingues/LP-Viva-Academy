@@ -46,14 +46,14 @@ export const HeroSection = ({ onCTAClick }: HeroSectionProps) => {
             projeto real e estruturado de vida.
           </p>
           
-          <Button 
+          <Button
             onClick={() => {
               // Track Facebook Pixel event
               trackPixelEvent(FacebookPixelEvents.LEAD, {
                 content_name: 'Hero CTA Click',
                 source: 'hero_section'
               });
-              
+
               const ofertaSection = document.getElementById('oferta');
               if (ofertaSection) {
                 ofertaSection.scrollIntoView({ behavior: 'smooth' });
@@ -61,8 +61,28 @@ export const HeroSection = ({ onCTAClick }: HeroSectionProps) => {
             }}
             className="bg-primary hover:bg-primary/90 text-white font-semibold text-lg px-10 py-4 rounded-lg shadow-lg transition-all"
           >
-            Começar meu plano de vida nos EUA
+            Garantir Vaga com 50% OFF
           </Button>
+
+          {/* Trust Badges */}
+          <div className="mt-6 space-y-3">
+            <div className="flex items-center gap-6 text-sm text-gray-300">
+              <span className="flex items-center gap-2">
+                <span className="text-green-500 text-lg">✓</span>
+                Mais de 5.000 famílias
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="text-green-500 text-lg">✓</span>
+                Garantia de 30 dias
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex text-yellow-400 text-sm">
+                ★★★★★
+              </div>
+              <span className="text-gray-300 text-sm font-medium">4.9/5 (2.847 avaliações)</span>
+            </div>
+          </div>
         </div>
         
         {/* Right Side - Professional Video */}
