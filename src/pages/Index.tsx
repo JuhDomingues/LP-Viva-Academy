@@ -1,3 +1,4 @@
+import { Header } from "@/components/ui/header";
 import { HeroSection } from "@/components/ui/hero-section";
 import { EntrepreneursSection } from "@/components/ui/entrepreneurs-section";
 import { PositioningSection } from "@/components/ui/positioning-section";
@@ -23,6 +24,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <Header onCTAClick={handleCTAClick} />
       <main>
         <HeroSection onCTAClick={handleCTAClick} />
         <EntrepreneursSection />

@@ -18,14 +18,25 @@ export const Header = ({ onCTAClick }: HeaderProps) => {
               <p className="text-sm text-muted-foreground">Do Zero ao Green Card</p>
             </div>
           </div>
-          
-          <Button 
-            onClick={onCTAClick}
-            variant="default"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2"
-          >
-            Começar Agora
-          </Button>
+
+          <div className="flex items-center gap-4">
+            <a
+              href="https://acesso.vivaacademy.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              Acessar Plataforma
+            </a>
+
+            <Button
+              onClick={onCTAClick}
+              variant="default"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2"
+            >
+              Começar Agora
+            </Button>
+          </div>
         </div>
       </div>
     </header>
