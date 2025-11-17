@@ -24,7 +24,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <Header onCTAClick={handleCTAClick} />
+      <Header />
       <main>
         <HeroSection onCTAClick={handleCTAClick} />
         <EntrepreneursSection />
