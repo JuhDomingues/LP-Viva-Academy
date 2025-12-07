@@ -38,7 +38,7 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
             {/* Scarcity Element */}
             <div className="text-center mb-6 mt-4">
               <p className="text-yellow-400 font-semibold text-sm">
-                🔥 Apenas 15 vagas disponíveis este mês
+                🔥 Apenas 500 vagas disponíveis este mês
               </p>
             </div>
 
@@ -48,14 +48,15 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
                 <span className="text-lg text-gray-400 line-through">De R$ 1.997</span>
               </div>
               <div className="relative inline-block">
-                <div className="text-6xl lg:text-7xl font-bold text-white mb-2">
-                  R$ 997
+                <div className="font-bold text-white mb-2">
+                  <span className="text-2xl lg:text-3xl">10x de </span>
+                  <span className="text-6xl lg:text-7xl">R$ 99,70</span>
                 </div>
                 <div className="absolute -top-2 -right-6 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold rotate-12">
                   50% OFF
                 </div>
               </div>
-              <p className="text-lg text-gray-300 mt-2">ou em até 10x de R$ 99,70</p>
+              <p className="text-xl text-gray-300 mt-3">ou R$ 997 à vista</p>
             </div>
 
             {/* Benefits */}

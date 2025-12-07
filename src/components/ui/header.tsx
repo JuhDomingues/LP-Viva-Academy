@@ -15,6 +15,14 @@ export const Header = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            <a href="#oferta">
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
+              >
+                Assine Agora
+              </Button>
+            </a>
             <a
               href="https://acesso.vivaacademy.app"
               target="_blank"
