@@ -56,7 +56,7 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
                   50% OFF
                 </div>
               </div>
-              <p className="text-xl text-gray-300 mt-3">ou R$ 997 à vista</p>
+              <p className="text-xl text-gray-300 mt-3">ou R$ 997,00 à vista</p>
             </div>
 
             {/* Benefits */}
