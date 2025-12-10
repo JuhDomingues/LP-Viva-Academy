@@ -2,6 +2,14 @@ import { openaiClient } from '../ai/openai-client';
 import { SYSTEM_PROMPT, getQualificationScore, shouldOfferSubscription, type LeadData } from '../ai/prompts';
 import { db } from '../db/client';
 
+interface ConversationMessage {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  created_at: Date;
+}
+
 export interface ProcessMessageOptions {
   sessionId: string;
   conversationId: string;
@@ -116,7 +124,7 @@ export class ChatService {
     return handoffKeywords.some(keyword => lowerMessage.includes(keyword));
   }
 
-  private async extractLeadData(conversationId: string, messages: any[]): Promise<LeadData> {
+  private async extractLeadData(conversationId: string, messages: ConversationMessage[]): Promise<LeadData> {
     const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n').toLowerCase();
 
     const leadData: LeadData = {

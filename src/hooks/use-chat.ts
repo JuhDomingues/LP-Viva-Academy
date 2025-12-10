@@ -8,24 +8,61 @@ export function useChat() {
   const [sessionId, setSessionId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Initialize session
-    const existingSession = getChatSession();
-    if (existingSession) {
-      setSessionId(existingSession.sessionId);
-      setMessages(existingSession.messages || []);
-    } else {
-      const newSessionId = uuidv4();
-      setSessionId(newSessionId);
-      saveChatSession({
-        sessionId: newSessionId,
-        messages: [],
-        lastUpdated: new Date(),
-      });
-    }
+    // Initialize session and load history
+    const initializeChat = async () => {
+      const existingSession = getChatSession();
+
+      if (existingSession) {
+        setSessionId(existingSession.sessionId);
+
+        // Try to load history from server
+        setIsLoadingHistory(true);
+        try {
+          const history = await chatApi.getConversationHistory(existingSession.sessionId);
+
+          if (history.messages && history.messages.length > 0) {
+            // Server has messages - use them as source of truth
+            const formattedMessages = history.messages.map((msg: Message) => ({
+              ...msg,
+              createdAt: new Date(msg.createdAt),
+            }));
+            setMessages(formattedMessages);
+
+            // Update localStorage with server data
+            saveChatSession({
+              sessionId: existingSession.sessionId,
+              messages: formattedMessages,
+              lastUpdated: new Date(),
+            });
+          } else {
+            // No server history - use localStorage as fallback
+            setMessages(existingSession.messages || []);
+          }
+        } catch (error) {
+          console.error('Failed to load chat history:', error);
+          // On error, use localStorage as fallback
+          setMessages(existingSession.messages || []);
+        } finally {
+          setIsLoadingHistory(false);
+        }
+      } else {
+        // New session
+        const newSessionId = uuidv4();
+        setSessionId(newSessionId);
+        saveChatSession({
+          sessionId: newSessionId,
+          messages: [],
+          lastUpdated: new Date(),
+        });
+      }
+    };
+
+    initializeChat();
   }, []);
 
   const sendMessage = useCallback(async (content: string) => {
@@ -63,7 +100,7 @@ export function useChat() {
       });
 
     } catch (err) {
-      console.error('Failed to send message:', error);
+      console.error('Failed to send message:', err);
 
       const errorMessage = err instanceof Error ? err.message : 'Desculpe, ocorreu um erro. Por favor, tente novamente.';
       setError(errorMessage);
@@ -93,6 +130,7 @@ export function useChat() {
   return {
     messages,
     isLoading,
+    isLoadingHistory,
     sendMessage,
     clearMessages,
     sessionId,

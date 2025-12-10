@@ -18,6 +18,7 @@ export function ChatWidget() {
   const {
     messages,
     isLoading,
+    isLoadingHistory,
     sendMessage,
     sessionId,
     unreadCount,
@@ -121,18 +122,24 @@ export function ChatWidget() {
         <>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            {messages.length === 0 && (
+            {isLoadingHistory ? (
+              <div className="text-center text-gray-500 mt-8">
+                <MessageCircle className="w-12 h-12 mx-auto mb-4 text-primary animate-pulse" />
+                <p className="text-sm">Carregando histórico...</p>
+              </div>
+            ) : messages.length === 0 ? (
               <div className="text-center text-gray-500 mt-8">
                 <MessageCircle className="w-12 h-12 mx-auto mb-4 text-primary" />
                 <p className="text-sm">Olá! Como posso ajudar você com sua imigração para os EUA?</p>
               </div>
+            ) : (
+              messages.map((message) => (
+                <ChatBubble
+                  key={message.id}
+                  message={message}
+                />
+              ))
             )}
-            {messages.map((message) => (
-              <ChatBubble
-                key={message.id}
-                message={message}
-              />
-            ))}
             {isLoading && <TypingIndicator />}
             <div ref={messagesEndRef} />
           </div>
