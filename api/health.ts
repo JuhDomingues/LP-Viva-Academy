@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../lib/db/client';
-import { evolutionClient } from '../lib/whatsapp/evolution-client';
+import { db } from '../lib/db/client.js';
+import { evolutionClient } from '../lib/whatsapp/evolution-client.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { chatService } from '../lib/services/chat-service';
-import { rateLimitWeb } from '../lib/utils/rate-limiter';
+import { chatService } from '../lib/services/chat-service.js';
+import { rateLimitWeb } from '../lib/utils/rate-limiter.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../lib/db/client';
+import { db } from '../lib/db/client.js';
 
 // Simple authentication
 function authenticate(req: VercelRequest): boolean {

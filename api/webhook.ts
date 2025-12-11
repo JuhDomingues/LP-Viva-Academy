@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { evolutionClient, type EvolutionWebhookPayload } from '../lib/whatsapp/evolution-client';
-import { chatService } from '../lib/services/chat-service';
-import { rateLimitWhatsApp } from '../lib/utils/rate-limiter';
+import { evolutionClient, type EvolutionWebhookPayload } from '../lib/whatsapp/evolution-client.js';
+import { chatService } from '../lib/services/chat-service.js';
+import { rateLimitWhatsApp } from '../lib/utils/rate-limiter.js';
 import crypto from 'crypto-js';
 
 function validateWebhookSignature(req: VercelRequest): boolean {

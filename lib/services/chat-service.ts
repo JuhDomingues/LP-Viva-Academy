@@ -1,6 +1,6 @@
-import { openaiClient } from '../ai/openai-client';
-import { SYSTEM_PROMPT, getQualificationScore, shouldOfferSubscription, type LeadData } from '../ai/prompts';
-import { db } from '../db/client';
+import { openaiClient } from '../ai/openai-client.js';
+import { SYSTEM_PROMPT, getQualificationScore, shouldOfferSubscription, type LeadData } from '../ai/prompts.js';
+import { db } from '../db/client.js';
 
 interface ConversationMessage {
   id: string;
