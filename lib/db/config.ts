@@ -3,6 +3,9 @@
  * Uses native pg Pool for better connection string compatibility
  */
 
+// Disable SSL certificate validation for Supabase self-signed certs
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 import pkg from 'pg';
 const { Pool } = pkg;
 
