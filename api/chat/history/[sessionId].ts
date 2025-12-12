@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSessionById, getActiveConversation, getConversationMessages } from '../../../lib/db/client';
+import { getSessionById, getActiveConversation, getConversationMessages } from '../../../lib/db/client.js';
 
 interface DbMessage {
   id: string;
