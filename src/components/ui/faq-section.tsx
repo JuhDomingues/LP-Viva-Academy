@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { InlineChat } from "@/components/chat/inline-chat";
 
 interface FAQSectionProps {
   onCTAClick: () => void;
@@ -82,25 +82,17 @@ export const FAQSection = ({ onCTAClick }: FAQSectionProps) => {
             ))}
           </div>
 
-          {/* CTA Section */}
-          <div className="text-center bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-lg p-6 sm:p-8">
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-black mb-3 sm:mb-4">
-              Ainda tem dúvidas sobre imigração?
-            </h3>
-            <p className="text-black mb-4 sm:mb-6 text-base sm:text-lg">
-              Entre em contato conosco e tire todas as suas dúvidas sobre como planejar sua vida nos EUA com segurança.
-            </p>
-            <Button
-              onClick={() => {
-                const phoneNumber = "5511913321718";
-                const message = "Olá! Tenho interesse em saber mais sobre a Viva Academy e como começar meu plano de vida nos EUA.";
-                const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-                window.open(whatsappUrl, '_blank');
-              }}
-              className="bg-black hover:bg-gray-900 text-white font-bold text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 w-full sm:w-auto"
-            >
-              Falar no WhatsApp
-            </Button>
+          {/* Chat Section */}
+          <div>
+            <div className="text-center mb-6">
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3">
+                Ainda tem dúvidas sobre <span className="text-primary">imigração?</span>
+              </h3>
+              <p className="text-gray-400 text-base sm:text-lg">
+                Converse com nosso consultor de IA e tire suas dúvidas em tempo real
+              </p>
+            </div>
+            <InlineChat />
           </div>
         </div>
       </div>

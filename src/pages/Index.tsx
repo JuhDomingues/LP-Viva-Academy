@@ -10,7 +10,6 @@ import { FAQSection } from "@/components/ui/faq-section";
 import { MediaSection } from "@/components/ui/media-section";
 import { CarouselSection } from "@/components/ui/carousel-section";
 import { Footer } from "@/components/ui/footer";
-import { ChatWidget } from "@/components/chat/chat-widget";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -39,7 +38,6 @@ const Index = () => {
         <FAQSection onCTAClick={handleCTAClick} />
       </main>
       <Footer />
-      <ChatWidget />
     </div>
   );
 };
