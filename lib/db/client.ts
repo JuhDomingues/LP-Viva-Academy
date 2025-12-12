@@ -1,6 +1,5 @@
-// Import config first to set correct POSTGRES_URL
-import './config.js';
-import { sql } from '@vercel/postgres';
+// Import sql from our custom config that handles connection string priority
+import { sql } from './config.js';
 
 // Session operations
 export interface CreateSessionParams {
