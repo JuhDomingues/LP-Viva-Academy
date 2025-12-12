@@ -20,12 +20,19 @@ console.log('[DB Config] Using connection string from:',
   process.env.DATABASE_URL ? 'DATABASE_URL' : 'POSTGRES_URL'
 );
 
+// Parse connection string to handle SSL properly
+const parsedUrl = new URL(connectionString!);
+const sslMode = parsedUrl.searchParams.get('sslmode');
+
 // Create pool using native pg
 const pool = new Pool({
   connectionString,
-  ssl: {
+  // Always use SSL for Supabase/production databases
+  ssl: sslMode === 'require' || sslMode === 'verify-full' ? {
     rejectUnauthorized: false,
-  },
+    // Accept self-signed certificates
+    checkServerIdentity: () => undefined,
+  } : false,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
