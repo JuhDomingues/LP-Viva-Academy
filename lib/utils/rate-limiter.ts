@@ -7,6 +7,15 @@ export interface RateLimitResult {
 }
 
 export async function rateLimit(identifier: string, max: number = 20, windowMs: number = 60000): Promise<RateLimitResult> {
+  // Check if KV is configured
+  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+    console.warn('KV not configured, rate limiting disabled');
+    return {
+      allowed: true,
+      remaining: max,
+    };
+  }
+
   const key = `rate_limit:${identifier}`;
   const now = Date.now();
   const windowStart = now - windowMs;
