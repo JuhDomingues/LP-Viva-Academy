@@ -13,7 +13,12 @@ async function initializeDatabase(): Promise<void> {
   console.log('\n🗄️  Database Initialization (Direct Connection)\n');
   console.log('='.repeat(70));
 
-  const connectionString = process.env.POSTGRES_URL_NON_POOLING || process.env.POSTGRES_URL;
+  // Priority: POSTGRES_CONNECTION_STRING > DATABASE_URL > POSTGRES_URL_NON_POOLING > POSTGRES_URL
+  const connectionString =
+    process.env.POSTGRES_CONNECTION_STRING ||
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.POSTGRES_URL;
 
   if (!connectionString) {
     console.log('\n❌ No database connection string found!');

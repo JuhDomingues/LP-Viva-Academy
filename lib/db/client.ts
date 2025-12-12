@@ -1,3 +1,5 @@
+// Import config first to set correct POSTGRES_URL
+import './config.js';
 import { sql } from '@vercel/postgres';
 
 // Session operations
