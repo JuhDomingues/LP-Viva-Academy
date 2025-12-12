@@ -1,10 +1,10 @@
 /**
  * Database Configuration
- * This file handles the database connection string priority
- * to work around locked Vercel environment variables
+ * Uses native pg Pool for better connection string compatibility
  */
 
-import { createPool } from '@vercel/postgres';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 // Priority order for database connection:
 // 1. POSTGRES_CONNECTION_STRING (custom override)
@@ -20,9 +20,46 @@ console.log('[DB Config] Using connection string from:',
   process.env.DATABASE_URL ? 'DATABASE_URL' : 'POSTGRES_URL'
 );
 
-// Create custom pool with our connection string
-export const db = createPool({
+// Create pool using native pg
+const pool = new Pool({
   connectionString,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
 });
 
-export const sql = db.sql;
+// Create sql template tag function compatible with @vercel/postgres
+export const sql = async (strings: TemplateStringsArray, ...values: any[]) => {
+  const client = await pool.connect();
+  try {
+    // Build query from template strings
+    let query = strings[0];
+    const params: any[] = [];
+
+    for (let i = 0; i < values.length; i++) {
+      params.push(values[i]);
+      query += `$${i + 1}${strings[i + 1]}`;
+    }
+
+    const result = await client.query(query, params);
+    return result;
+  } finally {
+    client.release();
+  }
+};
+
+// Add query method for non-template queries
+(sql as any).query = async (text: string, params?: any[]) => {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(text, params);
+    return result;
+  } finally {
+    client.release();
+  }
+};
+
+export { pool };
