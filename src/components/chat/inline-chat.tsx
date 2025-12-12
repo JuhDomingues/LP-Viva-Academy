@@ -7,6 +7,7 @@ import { TypingIndicator } from './typing-indicator';
 
 export function InlineChat() {
   const [inputValue, setInputValue] = useState('');
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -17,9 +18,9 @@ export function InlineChat() {
   } = useChat();
 
   useEffect(() => {
-    // Only scroll within the chat container, not the entire page
-    if (messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Scroll dentro do container de mensagens, não da página
+    if (messages.length > 0 && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -52,7 +53,7 @@ export function InlineChat() {
       </div>
 
       {/* Messages */}
-      <div className="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div ref={messagesContainerRef} className="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {isLoadingHistory ? (
           <div className="text-center text-gray-500 mt-8">
             <MessageCircle className="w-12 h-12 mx-auto mb-4 text-primary animate-pulse" />
