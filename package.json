@@ -14,6 +14,7 @@
     "test:integrations": "tsx scripts/test-integrations.ts",
     "test:production": "tsx scripts/test-production.ts",
     "db:init": "tsx scripts/init-database.ts",
+    "db:init:direct": "npx dotenv-cli -- tsx scripts/init-db-direct.ts",
     "db:reset": "tsx scripts/init-database.ts reset",
     "setup": "npm run env:validate && npm run db:init && npm run test:integrations"
   },
@@ -61,6 +62,7 @@
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
     "openai": "^4.104.0",
+    "pg": "^8.16.3",
     "rate-limiter-flexible": "^5.0.5",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
@@ -86,6 +88,7 @@
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.32.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
