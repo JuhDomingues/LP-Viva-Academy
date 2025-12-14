@@ -36,7 +36,7 @@ const Index = () => {
         <MediaSection />
         <MethodologySection onCTAClick={handleCTAClick} />
         <PricingSection onCTAClick={handleCTAClick} />
-        <FAQSection onCTAClick={handleCTAClick} />
+        <FAQSection />
       </main>
       <Footer />
       <ChatWidget />

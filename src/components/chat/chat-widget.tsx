@@ -30,6 +30,20 @@ export function ChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    // Listen for custom event to open chat from other components
+    const handleOpenChat = () => {
+      setIsOpen(true);
+      setIsMinimized(false);
+    };
+
+    window.addEventListener('openChat', handleOpenChat);
+
+    return () => {
+      window.removeEventListener('openChat', handleOpenChat);
+    };
+  }, []);
+
   // Removed: Chat open tracking
   // Lead pixel will only fire after user submits their info
 
