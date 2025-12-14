@@ -16,6 +16,7 @@
     "db:init": "tsx scripts/init-database.ts",
     "db:init:direct": "npx dotenv-cli -- tsx scripts/init-db-direct.ts",
     "db:reset": "tsx scripts/init-database.ts reset",
+    "webhook:setup": "tsx scripts/setup-webhook.ts",
     "setup": "npm run env:validate && npm run db:init && npm run test:integrations"
   },
   "dependencies": {
