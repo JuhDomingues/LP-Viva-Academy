@@ -89,11 +89,13 @@ export function UserInfoForm({ onSubmit }: UserInfoFormProps) {
         <input
           type="text"
           id="nome"
+          name="nome"
           value={formData.nome}
           onChange={(e) => handleChange('nome', e.target.value)}
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
           placeholder="Seu nome completo"
           disabled={isSubmitting}
+          autoComplete="name"
         />
         {errors.nome && (
           <p className="text-xs text-red-500 mt-1">{errors.nome}</p>
@@ -108,11 +110,13 @@ export function UserInfoForm({ onSubmit }: UserInfoFormProps) {
         <input
           type="email"
           id="email"
+          name="email"
           value={formData.email}
           onChange={(e) => handleChange('email', e.target.value)}
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
           placeholder="seu@email.com"
           disabled={isSubmitting}
+          autoComplete="email"
         />
         {errors.email && (
           <p className="text-xs text-red-500 mt-1">{errors.email}</p>
@@ -127,11 +131,13 @@ export function UserInfoForm({ onSubmit }: UserInfoFormProps) {
         <input
           type="tel"
           id="telefone"
+          name="telefone"
           value={formData.telefone}
           onChange={(e) => handleChange('telefone', e.target.value)}
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
           placeholder="(00) 00000-0000"
           disabled={isSubmitting}
+          autoComplete="tel"
         />
         {errors.telefone && (
           <p className="text-xs text-red-500 mt-1">{errors.telefone}</p>
