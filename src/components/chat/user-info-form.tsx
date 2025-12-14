@@ -12,6 +12,7 @@ export function UserInfoForm({ onSubmit }: UserInfoFormProps) {
     nome: '',
     email: '',
     telefone: '',
+    countryCode: '+55', // Default: Brazil
   });
   const [errors, setErrors] = useState<Partial<Record<keyof UserData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -123,25 +124,47 @@ export function UserInfoForm({ onSubmit }: UserInfoFormProps) {
         )}
       </div>
 
-      {/* Telefone */}
+      {/* Telefone com seletor de país */}
       <div>
         <label htmlFor="telefone" className="block text-sm font-medium text-gray-700 mb-1">
           Telefone <span className="text-red-500">*</span>
         </label>
-        <input
-          type="tel"
-          id="telefone"
-          name="telefone"
-          value={formData.telefone}
-          onChange={(e) => handleChange('telefone', e.target.value)}
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
-          placeholder="(00) 00000-0000"
-          disabled={isSubmitting}
-          autoComplete="tel"
-        />
+        <div className="flex gap-2">
+          <select
+            value={formData.countryCode}
+            onChange={(e) => handleChange('countryCode', e.target.value)}
+            className="w-32 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
+            disabled={isSubmitting}
+          >
+            <option value="+55">🇧🇷 +55</option>
+            <option value="+1">🇺🇸 +1</option>
+            <option value="+351">🇵🇹 +351</option>
+            <option value="+34">🇪🇸 +34</option>
+            <option value="+44">🇬🇧 +44</option>
+            <option value="+33">🇫🇷 +33</option>
+            <option value="+49">🇩🇪 +49</option>
+            <option value="+39">🇮🇹 +39</option>
+            <option value="+54">🇦🇷 +54</option>
+            <option value="+52">🇲🇽 +52</option>
+          </select>
+          <input
+            type="tel"
+            id="telefone"
+            name="telefone"
+            value={formData.telefone}
+            onChange={(e) => handleChange('telefone', e.target.value)}
+            className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900"
+            placeholder="11 99999-9999"
+            disabled={isSubmitting}
+            autoComplete="tel"
+          />
+        </div>
         {errors.telefone && (
           <p className="text-xs text-red-500 mt-1">{errors.telefone}</p>
         )}
+        <p className="text-xs text-gray-500 mt-1">
+          Formato internacional: {formData.countryCode || '+55'} {formData.telefone.replace(/\D/g, '')}
+        </p>
       </div>
 
       <Button

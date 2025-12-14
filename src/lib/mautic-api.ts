@@ -2,6 +2,7 @@ export interface UserData {
   nome: string;
   email: string;
   telefone: string;
+  countryCode?: string; // +55, +1, etc
 }
 
 export interface MauticFormData {
@@ -17,6 +18,18 @@ export class MauticAPI {
 
   static async submitForm(userData: UserData): Promise<boolean> {
     try {
+      // Format phone with country code (international format)
+      const countryCode = userData.countryCode || '+55'; // Default to Brazil
+      const phoneNumber = userData.telefone.replace(/\D/g, ''); // Remove non-digits
+      const internationalPhone = `${countryCode}${phoneNumber}`;
+
+      console.log('📞 Formatting phone:', {
+        original: userData.telefone,
+        countryCode,
+        cleaned: phoneNumber,
+        international: internationalPhone,
+      });
+
       // Send to our backend proxy instead of directly to Mautic
       const response = await fetch(`${this.API_URL}/mautic`, {
         method: 'POST',
@@ -26,7 +39,7 @@ export class MauticAPI {
         body: JSON.stringify({
           nome: userData.nome,
           email: userData.email,
-          telefone: userData.telefone,
+          telefone: internationalPhone,
         }),
       });
 
