@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Minimize2 } from 'lucide-react';
+import { MessageCircle, X, Send, Minimize2, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/use-chat';
 import { ChatBubble } from './chat-bubble';
@@ -165,6 +165,12 @@ export function ChatWidget() {
 
               {/* Input */}
               <div className="p-4 border-t bg-white rounded-b-2xl shrink-0">
+                {userInfo?.telefone && (
+                  <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-xs text-green-700">
+                    <Phone className="w-4 h-4" />
+                    <span>Suas respostas também serão enviadas para seu WhatsApp</span>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <input
                     type="text"

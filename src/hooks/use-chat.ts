@@ -83,7 +83,9 @@ export function useChat() {
     setError(null);
 
     try {
-      const response = await chatApi.sendMessage(sessionId, content);
+      // Send message and optionally sync with WhatsApp if user provided phone
+      const whatsappNumber = userInfo?.telefone;
+      const response = await chatApi.sendMessage(sessionId, content, whatsappNumber);
 
       const assistantMessage: Message = {
         id: uuidv4(),
@@ -98,6 +100,7 @@ export function useChat() {
           sessionId,
           messages: updated,
           lastUpdated: new Date(),
+          userInfo,
         });
         return updated;
       });
@@ -119,7 +122,7 @@ export function useChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [sessionId]);
+  }, [sessionId, userInfo]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
