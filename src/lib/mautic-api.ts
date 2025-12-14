@@ -13,32 +13,32 @@ export interface MauticFormData {
 }
 
 export class MauticAPI {
-  private static readonly MAUTIC_URL = 'https://mkt.vivaacademy.co';
-  private static readonly FORM_ID = '3';
-  private static readonly FORM_NAME = 'formagenteia';
+  private static readonly API_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
   static async submitForm(userData: UserData): Promise<boolean> {
     try {
-      const formData = new FormData();
+      // Send to our backend proxy instead of directly to Mautic
+      const response = await fetch(`${this.API_URL}/mautic`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome: userData.nome,
+          email: userData.email,
+          telefone: userData.telefone,
+        }),
+      });
 
-      // Add form fields
-      formData.append('mauticform[nome]', userData.nome);
-      formData.append('mauticform[email]', userData.email);
-      formData.append('mauticform[telefone]', userData.telefone);
-      formData.append('mauticform[formId]', this.FORM_ID);
-      formData.append('mauticform[formName]', this.FORM_NAME);
-      formData.append('mauticform[submit]', '1');
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Mautic API error:', error);
+        throw new Error(error.error || 'Falha ao enviar dados');
+      }
 
-      const response = await fetch(
-        `${this.MAUTIC_URL}/form/submit?formId=${this.FORM_ID}`,
-        {
-          method: 'POST',
-          body: formData,
-          mode: 'no-cors', // Mautic may not have CORS enabled
-        }
-      );
+      const result = await response.json();
+      console.log('Mautic submission successful:', result);
 
-      // With no-cors, we can't read the response, so we assume success
       return true;
     } catch (error) {
       console.error('Failed to submit form to Mautic:', error);
