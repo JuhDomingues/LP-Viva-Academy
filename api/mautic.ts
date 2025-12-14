@@ -62,17 +62,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     // Mautic returns HTML, not JSON. Status 200 is success.
+    console.log('📊 Mautic response details:', {
+      status: mauticResponse.status,
+      contentType: mauticResponse.headers['content-type'],
+      bodyLength: mauticResponse.data?.toString().length,
+      bodyPreview: mauticResponse.data?.toString().substring(0, 1000),
+    });
+
     if (mauticResponse.status === 200) {
-      console.log('✅ Mautic submission successful:', {
-        nome,
-        email,
-        telefone,
-        status: mauticResponse.status,
-      });
+      // Check if response contains error messages
+      const responseText = mauticResponse.data?.toString() || '';
+      const hasError = responseText.includes('error') ||
+                       responseText.includes('Error') ||
+                       responseText.includes('campo obrigatório') ||
+                       responseText.includes('required');
+
+      if (hasError) {
+        console.warn('⚠️  Mautic response may contain errors:', {
+          nome,
+          email,
+          telefone,
+          responsePreview: responseText.substring(0, 500),
+        });
+      } else {
+        console.log('✅ Mautic submission successful:', {
+          nome,
+          email,
+          telefone,
+          status: mauticResponse.status,
+        });
+      }
 
       return res.status(200).json({
         success: true,
         message: 'Dados enviados com sucesso para o Mautic',
+        debug: process.env.NODE_ENV === 'development' ? {
+          mauticStatus: mauticResponse.status,
+          hasError,
+        } : undefined,
       });
     }
 
