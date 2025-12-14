@@ -27,25 +27,44 @@ export function UserInfoForm({ onSubmit }: UserInfoFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('📝 Form submitted with data:', formData);
+
     // Validate
     const validation = MauticAPI.validateUserData(formData);
+    console.log('✅ Validation result:', validation);
+
     if (!validation.isValid) {
+      console.error('❌ Validation failed:', validation.errors);
       setErrors(validation.errors);
       return;
     }
 
     setIsSubmitting(true);
+    console.log('🚀 Submitting to Mautic...');
+
     try {
       // Submit to Mautic
-      await MauticAPI.submitForm(formData);
+      const result = await MauticAPI.submitForm(formData);
+      console.log('✅ Mautic submission result:', result);
 
       // Call parent callback
+      console.log('📞 Calling parent onSubmit callback');
       onSubmit(formData);
+
+      console.log('✅ Form submission complete!');
     } catch (error) {
-      console.error('Failed to submit form:', error);
+      console.error('❌ Failed to submit form:', error);
+
+      // Show detailed error to user
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.error('Error details:', errorMessage);
+
       setErrors({
-        email: 'Erro ao enviar dados. Por favor, tente novamente.',
+        email: `Erro: ${errorMessage}`,
       });
+
+      // Also alert for debugging
+      alert(`Erro ao enviar formulário:\n${errorMessage}\n\nAbra o console (F12) para mais detalhes.`);
     } finally {
       setIsSubmitting(false);
     }
