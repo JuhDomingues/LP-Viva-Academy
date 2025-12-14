@@ -13,8 +13,6 @@ export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  const [hasTrackedOpen, setHasTrackedOpen] = useState(false);
-  const [hasTrackedFirstMessage, setHasTrackedFirstMessage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -32,22 +30,25 @@ export function ChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    // Track chat open
-    if (isOpen && !hasTrackedOpen) {
-      trackPixelEvent(FacebookPixelEvents.LEAD, {
-        content_name: 'Chat Widget Opened',
-        source: 'web_chat',
-      });
-      setHasTrackedOpen(true);
-    }
-  }, [isOpen, hasTrackedOpen]);
+  // Removed: Chat open tracking
+  // Lead pixel will only fire after user submits their info
 
   const handleUserInfoSubmit = (userData: UserData) => {
     saveUserInfo(userData);
+
+    // 🎯 ÚNICO EVENTO DE LEAD - Dispara apenas após captura de dados do usuário
     trackPixelEvent(FacebookPixelEvents.LEAD, {
-      content_name: 'User Info Submitted',
+      content_name: 'Lead Captured - Chat Form',
+      content_category: 'lead_generation',
       source: 'web_chat',
+      value: 1,
+      currency: 'BRL',
+    });
+
+    console.log('🎯 Facebook Pixel LEAD disparado:', {
+      nome: userData.nome,
+      email: userData.email,
+      telefone: userData.telefone,
     });
   };
 
@@ -57,14 +58,8 @@ export function ChatWidget() {
     const message = inputValue;
     setInputValue('');
 
-    // Track first message
-    if (!hasTrackedFirstMessage && messages.length === 0) {
-      trackPixelEvent(FacebookPixelEvents.LEAD, {
-        content_name: 'Chat Engagement',
-        source: 'web_chat',
-      });
-      setHasTrackedFirstMessage(true);
-    }
+    // Removed: First message tracking
+    // Lead pixel only fires after user info submission
 
     await sendMessage(message);
   };
