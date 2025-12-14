@@ -5,10 +5,17 @@ export interface Message {
   createdAt: Date;
 }
 
+export interface UserInfo {
+  nome: string;
+  email: string;
+  telefone: string;
+}
+
 export interface ChatSession {
   sessionId: string;
   messages: Message[];
   lastUpdated: Date;
+  userInfo?: UserInfo;
 }
 
 export interface SendMessageResponse {
@@ -22,4 +29,5 @@ export interface ChatState {
   isOpen: boolean;
   isMinimized: boolean;
   unreadCount: number;
+  hasUserInfo: boolean;
 }

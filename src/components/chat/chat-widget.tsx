@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { useChat } from '@/hooks/use-chat';
 import { ChatBubble } from './chat-bubble';
 import { TypingIndicator } from './typing-indicator';
+import { UserInfoForm } from './user-info-form';
 import { cn } from '@/lib/utils';
 import { trackPixelEvent, FacebookPixelEvents } from '@/lib/facebook-pixel';
+import type { UserData } from '@/lib/mautic-api';
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,6 +24,8 @@ export function ChatWidget() {
     sendMessage,
     sessionId,
     unreadCount,
+    userInfo,
+    saveUserInfo,
   } = useChat();
 
   useEffect(() => {
@@ -38,6 +42,14 @@ export function ChatWidget() {
       setHasTrackedOpen(true);
     }
   }, [isOpen, hasTrackedOpen]);
+
+  const handleUserInfoSubmit = (userData: UserData) => {
+    saveUserInfo(userData);
+    trackPixelEvent(FacebookPixelEvents.LEAD, {
+      content_name: 'User Info Submitted',
+      source: 'web_chat',
+    });
+  };
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -120,54 +132,63 @@ export function ChatWidget() {
 
       {!isMinimized && (
         <>
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            {isLoadingHistory ? (
-              <div className="text-center text-gray-500 mt-8">
-                <MessageCircle className="w-12 h-12 mx-auto mb-4 text-primary animate-pulse" />
-                <p className="text-sm">Carregando histórico...</p>
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="text-center text-gray-500 mt-8">
-                <MessageCircle className="w-12 h-12 mx-auto mb-4 text-primary" />
-                <p className="text-sm">Olá! Como posso ajudar você com sua imigração para os EUA?</p>
-              </div>
-            ) : (
-              messages.map((message) => (
-                <ChatBubble
-                  key={message.id}
-                  message={message}
-                />
-              ))
-            )}
-            {isLoading && <TypingIndicator />}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="p-4 border-t bg-white rounded-b-2xl shrink-0">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="Digite sua mensagem..."
-                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-400"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={handleSend}
-                disabled={!inputValue.trim() || isLoading}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
+          {!userInfo ? (
+            /* User Info Form */
+            <div className="flex-1 overflow-y-auto bg-gray-50">
+              <UserInfoForm onSubmit={handleUserInfoSubmit} />
             </div>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              Geralmente responde em segundos
-            </p>
-          </div>
+          ) : (
+            <>
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                {isLoadingHistory ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-4 text-primary animate-pulse" />
+                    <p className="text-sm">Carregando histórico...</p>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="text-center text-gray-500 mt-8">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-4 text-primary" />
+                    <p className="text-sm">Olá, {userInfo.nome.split(' ')[0]}! Como posso ajudar você com sua imigração para os EUA?</p>
+                  </div>
+                ) : (
+                  messages.map((message) => (
+                    <ChatBubble
+                      key={message.id}
+                      message={message}
+                    />
+                  ))
+                )}
+                {isLoading && <TypingIndicator />}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input */}
+              <div className="p-4 border-t bg-white rounded-b-2xl shrink-0">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Digite sua mensagem..."
+                    className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-400"
+                    disabled={isLoading}
+                  />
+                  <Button
+                    onClick={handleSend}
+                    disabled={!inputValue.trim() || isLoading}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Geralmente responde em segundos
+                </p>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

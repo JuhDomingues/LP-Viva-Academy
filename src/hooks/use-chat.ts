@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { chatApi } from '@/lib/chat-api';
 import { getChatSession, saveChatSession } from '@/lib/chat-storage';
-import type { Message } from '@/types/chat';
+import type { Message, UserInfo } from '@/types/chat';
 
 export function useChat() {
   const [sessionId, setSessionId] = useState<string>('');
@@ -11,6 +11,7 @@ export function useChat() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   useEffect(() => {
     // Initialize session and load history
@@ -19,6 +20,7 @@ export function useChat() {
 
       if (existingSession) {
         setSessionId(existingSession.sessionId);
+        setUserInfo(existingSession.userInfo || null);
 
         // Try to load history from server
         setIsLoadingHistory(true);
@@ -38,6 +40,7 @@ export function useChat() {
               sessionId: existingSession.sessionId,
               messages: formattedMessages,
               lastUpdated: new Date(),
+              userInfo: existingSession.userInfo,
             });
           } else {
             // No server history - use localStorage as fallback
@@ -124,8 +127,19 @@ export function useChat() {
       sessionId,
       messages: [],
       lastUpdated: new Date(),
+      userInfo,
     });
-  }, [sessionId]);
+  }, [sessionId, userInfo]);
+
+  const saveUserInfo = useCallback((info: UserInfo) => {
+    setUserInfo(info);
+    saveChatSession({
+      sessionId,
+      messages,
+      lastUpdated: new Date(),
+      userInfo: info,
+    });
+  }, [sessionId, messages]);
 
   return {
     messages,
@@ -136,5 +150,7 @@ export function useChat() {
     sessionId,
     unreadCount,
     error,
+    userInfo,
+    saveUserInfo,
   };
 }

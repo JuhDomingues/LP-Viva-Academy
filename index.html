@@ -45,6 +45,28 @@
     <script>(function(v,i,s,a,t){v[t]=v[t]||function(){(v[t].v=v[t].v||[]).push(arguments)};if(!v._visaSettings){v._visaSettings={}}v._visaSettings[a]={v:'1.0',s:a,a:'1',t:t};var b=i.getElementsByTagName('body')[0];var p=i.createElement('script');p.defer=1;p.async=1;p.src=s+'?s='+a;b.appendChild(p)})(window,document,'//app-worker.visitor-analytics.io/main.js','01f4b4ef-d522-11f0-84e1-960004340fd3','va')</script>
     <!-- TWIPLA Tracking Code for https://www.vivaacademy.app/ -->
 
+    <!-- Mautic Form SDK -->
+    <script type="text/javascript">
+    if (typeof MauticSDKLoaded == 'undefined') {
+        var MauticSDKLoaded = true;
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://mkt.vivaacademy.co/media/js/mautic-form.js?v595b035a';
+        script.onload = function() {
+            MauticSDK.onLoad();
+        };
+        head.appendChild(script);
+        var MauticDomain = 'https://mkt.vivaacademy.co';
+        var MauticLang = {
+            'submittingMessage': "Por favor, aguarde..."
+        }
+    } else if (typeof MauticSDK != 'undefined') {
+        MauticSDK.onLoad();
+    }
+    </script>
+    <!-- End Mautic Form SDK -->
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
