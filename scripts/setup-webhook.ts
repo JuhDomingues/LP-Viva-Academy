@@ -54,14 +54,16 @@ async function setupWebhook() {
     const webhookResponse = await axios.post(
       `${EVOLUTION_API_URL}/webhook/set/${EVOLUTION_INSTANCE_NAME}`,
       {
-        enabled: true,
-        url: WEBHOOK_URL,
-        webhookByEvents: true,
-        events: [
-          'MESSAGES_UPSERT',
-          'MESSAGES_UPDATE',
-          'CONNECTION_UPDATE',
-        ],
+        webhook: {
+          enabled: true,
+          url: WEBHOOK_URL,
+          webhookByEvents: true,
+          events: [
+            'MESSAGES_UPSERT',
+            'MESSAGES_UPDATE',
+            'CONNECTION_UPDATE',
+          ],
+        },
       },
       {
         headers: {
