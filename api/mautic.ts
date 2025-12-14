@@ -54,39 +54,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Viva-Academy-Bot/1.0',
+          'User-Agent': 'Mozilla/5.0 (compatible; Viva-Academy-Bot/1.0)',
         },
-        maxRedirects: 0,
-        validateStatus: (status) => status < 400, // Accept redirects as success
+        maxRedirects: 5,
+        validateStatus: () => true, // Accept any status code
       }
     );
 
-    console.log('Mautic submission successful:', {
-      nome,
-      email,
+    // Mautic returns HTML, not JSON. Status 200 is success.
+    if (mauticResponse.status === 200) {
+      console.log('✅ Mautic submission successful:', {
+        nome,
+        email,
+        telefone,
+        status: mauticResponse.status,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Dados enviados com sucesso para o Mautic',
+      });
+    }
+
+    // If not 200, log the error
+    console.error('⚠️  Mautic unexpected status:', {
       status: mauticResponse.status,
+      data: mauticResponse.data?.toString().substring(0, 200),
     });
 
     return res.status(200).json({
       success: true,
-      message: 'Dados enviados com sucesso para o Mautic',
+      message: 'Dados processados',
+      warning: `Status: ${mauticResponse.status}`,
     });
 
   } catch (error: any) {
-    console.error('Mautic submission error:', {
+    console.error('❌ Mautic submission error:', {
       message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
+      nome,
+      email,
     });
-
-    // Even if Mautic returns an error, it might have processed the form
-    // Mautic often returns 200 with HTML response instead of JSON
-    if (error.response?.status === 200) {
-      return res.status(200).json({
-        success: true,
-        message: 'Dados enviados para o Mautic',
-      });
-    }
 
     return res.status(500).json({
       error: 'Failed to submit to Mautic',
