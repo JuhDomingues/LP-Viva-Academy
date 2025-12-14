@@ -91,8 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error: any) {
     console.error('❌ Mautic submission error:', {
       message: error.message,
-      nome,
-      email,
+      requestBody: req.body,
     });
 
     return res.status(500).json({
