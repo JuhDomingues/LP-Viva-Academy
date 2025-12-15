@@ -209,15 +209,25 @@ export class ChatService {
     }
 
     // Send to Mautic if we have complete contact data (WhatsApp integration)
+    console.log('🔍 Extracted lead data:', {
+      name: leadData.name,
+      email: extractedEmail,
+      phone: extractedPhone,
+      hasAllData: !!(extractedEmail && extractedPhone && leadData.name),
+    });
+
     if (extractedEmail && extractedPhone && leadData.name) {
+      console.log('✅ All contact data extracted, sending to Mautic...');
       await this.sendToMautic({
         nome: leadData.name,
         email: extractedEmail,
         telefone: extractedPhone,
       }).catch(error => {
         // Log but don't fail if Mautic integration fails
-        console.error('Failed to send to Mautic:', error);
+        console.error('❌ Failed to send to Mautic:', error);
       });
+    } else {
+      console.log('⚠️  Missing contact data, not sending to Mautic');
     }
 
     return leadData;
@@ -225,14 +235,23 @@ export class ChatService {
 
   private async sendToMautic(data: { nome: string; email: string; telefone: string }): Promise<void> {
     try {
-      const API_URL = process.env.API_BASE_URL || 'https://www.vivaacademy.app/api';
+      // Use Vercel URL directly (internal API call)
+      const API_URL = 'https://www.vivaacademy.app/api';
 
-      console.log('📤 Sending to Mautic:', { nome: data.nome, email: data.email, telefone: data.telefone.substring(0, 5) + '...' });
+      // Format phone number correctly
+      const phoneNumber = data.telefone.replace(/\D/g, ''); // Remove non-digits
+      const formattedPhone = phoneNumber.startsWith('55') ? `+${phoneNumber}` : `+55${phoneNumber}`;
+
+      console.log('📤 Sending to Mautic:', {
+        nome: data.nome,
+        email: data.email,
+        telefone: formattedPhone.substring(0, 7) + '...'
+      });
 
       const response = await axios.post(`${API_URL}/mautic`, {
         nome: data.nome,
         email: data.email,
-        telefone: `+55${data.telefone}`, // Add country code for Brazil
+        telefone: formattedPhone,
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -240,9 +259,13 @@ export class ChatService {
         timeout: 10000,
       });
 
-      console.log('✅ Mautic integration successful');
-    } catch (error) {
-      console.error('❌ Mautic integration error:', error);
+      console.log('✅ Mautic integration successful:', response.data);
+    } catch (error: any) {
+      console.error('❌ Mautic integration error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       throw error;
     }
   }
