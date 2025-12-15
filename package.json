@@ -20,6 +20,7 @@
     "test:mautic": "tsx scripts/test-mautic.ts",
     "diagnose": "tsx scripts/diagnose-whatsapp.ts",
     "webhook:fix": "tsx scripts/fix-webhook.ts",
+    "webhook:test": "tsx scripts/test-webhook.ts",
     "setup": "npm run env:validate && npm run db:init && npm run test:integrations"
   },
   "dependencies": {
