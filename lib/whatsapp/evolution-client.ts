@@ -60,6 +60,35 @@ export class EvolutionClient {
     }
   }
 
+  async sendButtonMessage(options: {
+    phoneNumber: string;
+    message: string;
+    buttons: Array<{ displayText: string; url: string }>;
+  }): Promise<void> {
+    const { phoneNumber, message, buttons } = options;
+
+    try {
+      // WhatsApp buttons format for Evolution API
+      const buttonMessage = {
+        number: phoneNumber,
+        buttonMessage: {
+          text: message,
+          buttons: buttons.map((btn, index) => ({
+            type: 'url',
+            displayText: btn.displayText,
+            url: btn.url,
+          })),
+        },
+      };
+
+      await this.client.post(`/message/sendButtons/${this.instanceName}`, buttonMessage);
+    } catch (error) {
+      console.error('Failed to send WhatsApp button message:', error);
+      // Fallback to text message if buttons fail
+      await this.sendTextMessage({ phoneNumber, message: `${message}\n\n${buttons[0]?.url || ''}` });
+    }
+  }
+
   async sendMediaMessage(options: SendMessageOptions): Promise<void> {
     const { phoneNumber, message, mediaUrl } = options;
 

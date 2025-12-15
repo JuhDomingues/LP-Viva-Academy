@@ -96,11 +96,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       channel: 'whatsapp',
     });
 
-    // Send AI response
-    await evolutionClient.sendTextMessage({
-      phoneNumber,
-      message: result.response,
-    });
+    // Send AI response with button if it contains subscription link
+    const checkoutLink = 'https://assinatura.vivaacademy.app/subscribe/9fd960f8-4d3b-4cf4-b1ea-6e2cf5b4c88c';
+
+    if (result.response.includes(checkoutLink)) {
+      // Extract message without the link
+      const messageWithoutLink = result.response.replace(checkoutLink, '').trim();
+
+      // Send message with button
+      await evolutionClient.sendButtonMessage({
+        phoneNumber,
+        message: messageWithoutLink,
+        buttons: [{
+          displayText: '🎓 Quero Garantir Minha Vaga',
+          url: checkoutLink,
+        }],
+      });
+    } else {
+      // Send normal text message
+      await evolutionClient.sendTextMessage({
+        phoneNumber,
+        message: result.response,
+      });
+    }
 
     // If should transfer to human, log for notification
     if (result.shouldTransferToHuman) {
