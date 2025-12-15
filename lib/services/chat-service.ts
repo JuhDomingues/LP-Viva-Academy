@@ -1,5 +1,5 @@
 import { openaiClient } from '../ai/openai-client.js';
-import { getSystemPrompt, getQualificationScore, shouldOfferSubscription, type LeadData } from '../ai/prompts.js';
+import { SYSTEM_PROMPT, getQualificationScore, shouldOfferSubscription, type LeadData } from '../ai/prompts.js';
 import { db } from '../db/client.js';
 
 interface ConversationMessage {
@@ -40,17 +40,9 @@ export class ChatService {
       // Get conversation history
       const messages = await db.getConversationMessages(conversationId);
 
-      // Build context for AI with channel-specific prompt
-      let systemPrompt: string;
-      try {
-        systemPrompt = getSystemPrompt(channel);
-      } catch (error) {
-        console.error('Error getting system prompt, using default:', error);
-        systemPrompt = getSystemPrompt('web'); // fallback to web prompt
-      }
-
+      // Build context for AI
       const conversationHistory = [
-        { role: 'system' as const, content: systemPrompt },
+        { role: 'system' as const, content: SYSTEM_PROMPT },
         ...messages.map(m => ({
           role: m.role as 'user' | 'assistant',
           content: m.content,
@@ -83,8 +75,8 @@ export class ChatService {
       const qualificationScore = getQualificationScore(leadData);
       const leadQualified = qualificationScore >= 70;
 
-      // Update or create lead if we have any meaningful data
-      if (leadData.name || leadData.email || leadData.phone || leadData.budget_range) {
+      // Update or create lead if we have enough data
+      if (leadData.name || leadData.budget_range) {
         await this.updateOrCreateLead(sessionId, conversationId, leadData, qualificationScore, leadQualified);
       }
 
@@ -133,55 +125,17 @@ export class ChatService {
   }
 
   private async extractLeadData(conversationId: string, messages: ConversationMessage[]): Promise<LeadData> {
-    const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-    const conversationLower = conversationText.toLowerCase();
+    const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n').toLowerCase();
 
     const leadData: LeadData = {
       total_messages: messages.filter(m => m.role === 'user').length,
     };
 
-    // Enhanced extraction with multiple patterns
-
-    // Extract name (múltiplos padrões)
-    const namePatterns = [
-      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?) ([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+)+)/,
-      /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+)+)$/m,
-    ];
-
-    for (const pattern of namePatterns) {
-      const match = conversationText.match(pattern);
-      if (match && match[1]) {
-        leadData.name = match[1].trim();
-        break;
-      }
-    }
-
-    // Extract email (padrões melhorados)
-    const emailPattern = /\b([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,})\b/;
-    const emailMatch = conversationText.match(emailPattern);
-    if (emailMatch) {
-      leadData.email = emailMatch[1].toLowerCase();
-    }
-
-    // Extract phone (padrões brasileiros e internacionais)
-    const phonePatterns = [
-      /(?:telefone|celular|whats|número)?\s*(?:\+?55)?\s*\(?(\d{2})\)?\s*(\d{4,5})[-\s]?(\d{4})/i,
-      /\b(\d{2})\s*(\d{4,5})[-\s]?(\d{4})\b/,
-      /\b(\d{11})\b/, // 11987654321
-    ];
-
-    for (const pattern of phonePatterns) {
-      const match = conversationText.match(pattern);
-      if (match) {
-        if (match.length === 4) {
-          // Formato (11) 98765-4321
-          leadData.phone = `${match[1]}${match[2]}${match[3]}`;
-        } else {
-          // Formato direto
-          leadData.phone = match[1].replace(/\D/g, '');
-        }
-        break;
-      }
+    // Simple extraction logic (could be enhanced with NLP)
+    // Extract name
+    const nameMatch = conversationText.match(/meu nome (?:é|eh) ([a-záàâãéèêíïóôõöúçñ\s]+)/i);
+    if (nameMatch) {
+      leadData.name = nameMatch[1].trim();
     }
 
     // Extract budget
@@ -231,8 +185,6 @@ export class ChatService {
       // Update existing lead
       await db.updateLead(existingLead.id, {
         name: leadData.name,
-        email: leadData.email,
-        phone: leadData.phone,
         familySituation: leadData.family_situation,
         immigrationGoals: leadData.immigration_goals,
         budgetRange: leadData.budget_range,
@@ -246,8 +198,6 @@ export class ChatService {
         sessionId,
         conversationId,
         name: leadData.name,
-        email: leadData.email,
-        phone: leadData.phone,
         familySituation: leadData.family_situation,
         immigrationGoals: leadData.immigration_goals,
         budgetRange: leadData.budget_range,
