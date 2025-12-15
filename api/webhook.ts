@@ -39,8 +39,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const payload: EvolutionWebhookPayload = req.body;
 
-    // Only process message events
-    if (payload.event !== 'messages.upsert') {
+    // Only process message events (accept both formats from Evolution API)
+    const eventLower = payload.event?.toLowerCase().replace('_', '.');
+    if (eventLower !== 'messages.upsert') {
       return res.status(200).json({ status: 'ignored', reason: 'not a message event' });
     }
 
