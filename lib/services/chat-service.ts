@@ -41,7 +41,14 @@ export class ChatService {
       const messages = await db.getConversationMessages(conversationId);
 
       // Build context for AI with channel-specific prompt
-      const systemPrompt = getSystemPrompt(channel);
+      let systemPrompt: string;
+      try {
+        systemPrompt = getSystemPrompt(channel);
+      } catch (error) {
+        console.error('Error getting system prompt, using default:', error);
+        systemPrompt = getSystemPrompt('web'); // fallback to web prompt
+      }
+
       const conversationHistory = [
         { role: 'system' as const, content: systemPrompt },
         ...messages.map(m => ({
