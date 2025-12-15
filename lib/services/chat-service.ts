@@ -1,6 +1,7 @@
 import { openaiClient } from '../ai/openai-client.js';
 import { SYSTEM_PROMPT, getQualificationScore, shouldOfferSubscription, type LeadData } from '../ai/prompts.js';
 import { db } from '../db/client.js';
+import axios from 'axios';
 
 interface ConversationMessage {
   id: string;
@@ -125,17 +126,55 @@ export class ChatService {
   }
 
   private async extractLeadData(conversationId: string, messages: ConversationMessage[]): Promise<LeadData> {
-    const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n').toLowerCase();
+    const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+    const conversationLower = conversationText.toLowerCase();
 
     const leadData: LeadData = {
       total_messages: messages.filter(m => m.role === 'user').length,
     };
 
-    // Simple extraction logic (could be enhanced with NLP)
-    // Extract name
-    const nameMatch = conversationText.match(/meu nome (?:é|eh) ([a-záàâãéèêíïóôõöúçñ\s]+)/i);
-    if (nameMatch) {
-      leadData.name = nameMatch[1].trim();
+    // Enhanced extraction with multiple patterns
+
+    // Extract name (múltiplos padrões)
+    const namePatterns = [
+      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?) ([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+)+)/,
+      /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+)+)$/m,
+    ];
+
+    for (const pattern of namePatterns) {
+      const match = conversationText.match(pattern);
+      if (match && match[1]) {
+        leadData.name = match[1].trim();
+        break;
+      }
+    }
+
+    // Extract email
+    const emailPattern = /\b([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,})\b/;
+    const emailMatch = conversationText.match(emailPattern);
+    let extractedEmail: string | undefined;
+    if (emailMatch) {
+      extractedEmail = emailMatch[1].toLowerCase();
+    }
+
+    // Extract phone (padrões brasileiros)
+    const phonePatterns = [
+      /(?:telefone|celular|whats|número)?\s*(?:\+?55)?\s*\(?(\d{2})\)?\s*(\d{4,5})[-\s]?(\d{4})/i,
+      /\b(\d{2})\s*(\d{4,5})[-\s]?(\d{4})\b/,
+      /\b(\d{11})\b/, // 11987654321
+    ];
+
+    let extractedPhone: string | undefined;
+    for (const pattern of phonePatterns) {
+      const match = conversationText.match(pattern);
+      if (match) {
+        if (match.length === 4) {
+          extractedPhone = `${match[1]}${match[2]}${match[3]}`;
+        } else {
+          extractedPhone = match[1].replace(/\D/g, '');
+        }
+        break;
+      }
     }
 
     // Extract budget
@@ -169,7 +208,43 @@ export class ChatService {
       leadData.immigration_goals = 'Investimento';
     }
 
+    // Send to Mautic if we have complete contact data (WhatsApp integration)
+    if (extractedEmail && extractedPhone && leadData.name) {
+      await this.sendToMautic({
+        nome: leadData.name,
+        email: extractedEmail,
+        telefone: extractedPhone,
+      }).catch(error => {
+        // Log but don't fail if Mautic integration fails
+        console.error('Failed to send to Mautic:', error);
+      });
+    }
+
     return leadData;
+  }
+
+  private async sendToMautic(data: { nome: string; email: string; telefone: string }): Promise<void> {
+    try {
+      const API_URL = process.env.API_BASE_URL || 'https://www.vivaacademy.app/api';
+
+      console.log('📤 Sending to Mautic:', { nome: data.nome, email: data.email, telefone: data.telefone.substring(0, 5) + '...' });
+
+      const response = await axios.post(`${API_URL}/mautic`, {
+        nome: data.nome,
+        email: data.email,
+        telefone: `+55${data.telefone}`, // Add country code for Brazil
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      });
+
+      console.log('✅ Mautic integration successful');
+    } catch (error) {
+      console.error('❌ Mautic integration error:', error);
+      throw error;
+    }
   }
 
   private async updateOrCreateLead(
