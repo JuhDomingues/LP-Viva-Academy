@@ -135,18 +135,30 @@ export class ChatService {
 
     // Enhanced extraction with multiple patterns
 
-    // Extract name (múltiplos padrões)
+    // Extract name (múltiplos padrões) - CASE INSENSITIVE
     const namePatterns = [
-      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?) ([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+)+)/,
-      /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑ][a-záàâãéèêíïóôõöúçñ]+)+)$/m,
+      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?\s+)([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)/i,
+      /user:\s*([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)/i,
+      /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)$/im,
     ];
 
     for (const pattern of namePatterns) {
       const match = conversationText.match(pattern);
       if (match && match[1]) {
-        leadData.name = match[1].trim();
-        break;
+        const possibleName = match[1].trim();
+        // Validate it's actually a name (2+ words, not email, not phone)
+        if (possibleName.split(/\s+/).length >= 2 &&
+            !possibleName.includes('@') &&
+            !/^\d+$/.test(possibleName)) {
+          leadData.name = possibleName;
+          console.log('✅ Nome extraído:', possibleName);
+          break;
+        }
       }
+    }
+
+    if (!leadData.name) {
+      console.log('⚠️  Nome não extraído');
     }
 
     // Extract email
