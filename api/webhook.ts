@@ -94,6 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       conversationId: conversation.id,
       userMessage: text,
       channel: 'whatsapp',
+      phoneNumber, // Pass WhatsApp phone for automatic capture
     });
 
     // Send AI response with button if it contains VIP group link

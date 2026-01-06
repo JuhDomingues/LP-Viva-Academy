@@ -16,6 +16,7 @@ export interface ProcessMessageOptions {
   conversationId: string;
   userMessage: string;
   channel: 'whatsapp' | 'web';
+  phoneNumber?: string; // WhatsApp phone number from session (if available)
 }
 
 export interface ProcessMessageResult {
@@ -28,7 +29,7 @@ export interface ProcessMessageResult {
 
 export class ChatService {
   async processMessage(options: ProcessMessageOptions): Promise<ProcessMessageResult> {
-    const { sessionId, conversationId, userMessage, channel } = options;
+    const { sessionId, conversationId, userMessage, channel, phoneNumber } = options;
 
     try {
       // Save user message
@@ -71,7 +72,7 @@ export class ChatService {
       const messageCount = await db.getMessageCount(conversationId);
 
       // Extract lead data from conversation
-      const leadData = await this.extractLeadData(conversationId, messages);
+      const leadData = await this.extractLeadData(conversationId, messages, phoneNumber);
       const shouldOffer = shouldOfferSubscription(leadData);
       const qualificationScore = getQualificationScore(leadData);
       const leadQualified = qualificationScore >= 70;
@@ -125,7 +126,7 @@ export class ChatService {
     return handoffKeywords.some(keyword => lowerMessage.includes(keyword));
   }
 
-  private async extractLeadData(conversationId: string, messages: ConversationMessage[]): Promise<LeadData> {
+  private async extractLeadData(conversationId: string, messages: ConversationMessage[], whatsappPhone?: string): Promise<LeadData> {
     const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
     const conversationLower = conversationText.toLowerCase();
 
@@ -182,23 +183,35 @@ export class ChatService {
     }
 
     // Extract phone (padrões brasileiros)
-    const phonePatterns = [
-      /(?:telefone|celular|whats|número)?\s*(?:\+?55)?\s*\(?(\d{2})\)?\s*(\d{4,5})[-\s]?(\d{4})/i,
-      /\b(\d{2})\s*(\d{4,5})[-\s]?(\d{4})\b/,
-      /\b(\d{11})\b/, // 11987654321
-    ];
+    // PRIORITY: Use WhatsApp phone if available (from session)
+    let extractedPhone: string | undefined = whatsappPhone;
 
-    let extractedPhone: string | undefined;
-    for (const pattern of phonePatterns) {
-      const match = conversationText.match(pattern);
-      if (match) {
-        if (match.length === 4) {
-          extractedPhone = `${match[1]}${match[2]}${match[3]}`;
-        } else {
-          extractedPhone = match[1].replace(/\D/g, '');
+    // Fallback: Try to extract from conversation text
+    if (!extractedPhone) {
+      const phonePatterns = [
+        /(?:telefone|celular|whats|número)?\s*(?:\+?55)?\s*\(?(\d{2})\)?\s*(\d{4,5})[-\s]?(\d{4})/i,
+        /\b(\d{2})\s*(\d{4,5})[-\s]?(\d{4})\b/,
+        /\b(\d{11})\b/, // 11987654321
+      ];
+
+      for (const pattern of phonePatterns) {
+        const match = conversationText.match(pattern);
+        if (match) {
+          if (match.length === 4) {
+            extractedPhone = `${match[1]}${match[2]}${match[3]}`;
+          } else {
+            extractedPhone = match[1].replace(/\D/g, '');
+          }
+          break;
         }
-        break;
       }
+    }
+
+    if (extractedPhone) {
+      console.log('✅ Telefone capturado:', {
+        source: whatsappPhone ? 'WhatsApp Session' : 'Conversation Text',
+        phone: extractedPhone.substring(0, 5) + '...',
+      });
     }
 
     // Extract budget
@@ -232,16 +245,17 @@ export class ChatService {
       leadData.immigration_goals = 'Investimento';
     }
 
-    // Send to Mautic if we have complete contact data (WhatsApp integration)
+    // Send to Mautic if we have complete contact data
     console.log('🔍 Extracted lead data:', {
       name: leadData.name,
       email: extractedEmail,
-      phone: extractedPhone,
+      phone: extractedPhone ? extractedPhone.substring(0, 5) + '...' : undefined,
+      phoneSource: whatsappPhone ? 'WhatsApp Session (auto)' : extractedPhone ? 'Conversation Text' : 'Not captured',
       hasAllData: !!(extractedEmail && extractedPhone && leadData.name),
     });
 
     if (extractedEmail && extractedPhone && leadData.name) {
-      console.log('✅ All contact data extracted, sending to Mautic...');
+      console.log('✅ All contact data ready, sending to Mautic...');
       await this.sendToMautic({
         nome: leadData.name,
         email: extractedEmail,
@@ -251,7 +265,11 @@ export class ChatService {
         console.error('❌ Failed to send to Mautic:', error);
       });
     } else {
-      console.log('⚠️  Missing contact data, not sending to Mautic');
+      console.log('⚠️  Missing contact data for Mautic:', {
+        hasName: !!leadData.name,
+        hasEmail: !!extractedEmail,
+        hasPhone: !!extractedPhone,
+      });
     }
 
     return leadData;
