@@ -11,21 +11,6 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
     <section id="oferta" className="py-16 sm:py-24 bg-black">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Professional Title */}
-          <div className="mb-12 sm:mb-16">
-            <div className="inline-block mb-4">
-              <span className="text-primary font-medium text-xs sm:text-sm uppercase tracking-wider bg-primary/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
-                Oferta Exclusiva
-              </span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 text-white">
-              Comece sua jornada hoje
-            </h2>
-            <p className="text-base sm:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              Transforme o sonho americano em realidade com nossa plataforma completa
-            </p>
-          </div>
-
           {/* Clean Pricing Card */}
           <div className="bg-gray-900 border-2 border-gray-700 rounded-2xl p-6 sm:p-12 shadow-lg relative max-w-3xl mx-auto">
             {/* Limited Badge */}
@@ -35,30 +20,27 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
               </div>
             </div>
 
-            {/* Scarcity Element */}
-            <div className="text-center mb-4 sm:mb-6 mt-4">
-              <p className="text-yellow-400 font-semibold text-xs sm:text-sm">
-                🔥 Apenas 500 vagas disponíveis este mês
-              </p>
-            </div>
-
-            {/* Price Section */}
+            {/* Coming Soon Announcement */}
             <div className="text-center mb-8 sm:mb-12 mt-4">
-              <div className="mb-2 sm:mb-4">
-                <span className="text-base sm:text-lg text-gray-400 line-through">De R$ 1.997</span>
+              <div className="py-8 sm:py-12">
+                <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary mb-4">
+                  Aguarde dia 19/01
+                </h3>
+                <p className="text-xl sm:text-2xl text-white font-semibold mb-3">
+                  Oferta Especial 2026
+                </p>
+                <p className="text-base sm:text-lg text-gray-300 mb-6">
+                  Por tempo limitado
+                </p>
+                <Button
+                  onClick={() => {
+                    window.open('https://chat.whatsapp.com/Bn98MhxKpGt9zb5g4XZ821', '_blank');
+                  }}
+                  className="bg-gradient-to-r from-primary to-orange-600 hover:from-primary/90 hover:to-orange-600/90 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg transition-all"
+                >
+                  Entre para o grupo VIP
+                </Button>
               </div>
-              <div className="relative inline-block">
-                <div className="font-bold text-white mb-2">
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
-                    <span className="text-xl sm:text-2xl lg:text-3xl">10x de</span>
-                    <span className="text-4xl sm:text-6xl lg:text-7xl">R$ 99,70</span>
-                  </div>
-                </div>
-                <div className="absolute -top-1 sm:-top-2 -right-4 sm:-right-6 bg-red-500 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-xs font-bold rotate-12">
-                  50% OFF
-                </div>
-              </div>
-              <p className="text-base sm:text-xl text-gray-300 mt-2 sm:mt-3">ou R$ 997,00 à vista</p>
             </div>
 
             {/* Benefits */}
@@ -95,37 +77,10 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
               </div>
             </div>
 
-            {/* CTA Button */}
-            <div className="space-y-3 sm:space-y-4">
-              <p className="text-center text-green-400 text-xs sm:text-sm font-medium mb-2">
-                🔒 Compra 100% segura • Acesso instantâneo após a confirmação
-              </p>
-              <Button
-                onClick={() => {
-                  // Track Facebook Pixel conversion event
-                  trackPixelEvent(FacebookPixelEvents.INITIATE_CHECKOUT, {
-                    content_name: 'Viva Academy Subscription',
-                    value: 997,
-                    currency: 'BRL',
-                    source: 'pricing_section'
-                  });
-
-                  window.open('https://assinatura.vivaacademy.app/subscribe/9fd960f8-4d3b-4cf4-b1ea-6e2cf5b4c88c', '_blank');
-                }}
-                className="w-full bg-primary hover:bg-primary/90 text-white font-semibold text-base sm:text-lg py-3 sm:py-4 rounded-xl shadow-lg transition-all max-w-md mx-auto"
-              >
-                GARANTIR MINHA VAGA AGORA
-              </Button>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6 text-xs sm:text-sm text-gray-400">
-                <span>✓ Compra 100% Segura</span>
-                <span>✓ Acesso Imediato</span>
-                <span>✓ Garantia de 30 dias</span>
-              </div>
-
-              {/* Additional Trust Elements */}
-              <p className="text-center text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4">
-                Cancele quando quiser • Sem fidelidade • Reembolso total em até 30 dias
+            {/* Info Message */}
+            <div className="text-center">
+              <p className="text-gray-300 text-sm sm:text-base">
+                Fique atento às novidades que estão por vir
               </p>
             </div>
           </div>

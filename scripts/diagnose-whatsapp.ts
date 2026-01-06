@@ -56,7 +56,7 @@ const client = axios.create({
 
 try {
   const response = await client.get(`/instance/connectionState/${EVOLUTION_INSTANCE_NAME}`);
-  const state = response.data.state;
+  const state = response.data.instance?.state;
 
   if (state === 'open') {
     console.log(`✅ Instância conectada: ${EVOLUTION_INSTANCE_NAME}`);
