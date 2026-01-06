@@ -96,20 +96,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       channel: 'whatsapp',
     });
 
-    // Send AI response with button if it contains subscription link
-    const checkoutLink = 'https://assinatura.vivaacademy.app/subscribe/9fd960f8-4d3b-4cf4-b1ea-6e2cf5b4c88c';
+    // Send AI response with button if it contains VIP group link
+    const vipGroupLink = 'https://chat.whatsapp.com/Bn98MhxKpGt9zb5g4XZ821';
 
-    if (result.response.includes(checkoutLink)) {
+    if (result.response.includes(vipGroupLink)) {
       // Extract message without the link
-      const messageWithoutLink = result.response.replace(checkoutLink, '').trim();
+      const messageWithoutLink = result.response.replace(vipGroupLink, '').trim();
 
       // Send message with button
       await evolutionClient.sendButtonMessage({
         phoneNumber,
         message: messageWithoutLink,
         buttons: [{
-          displayText: '🎓 Quero Garantir Minha Vaga',
-          url: checkoutLink,
+          displayText: '🌟 Entrar no Grupo VIP',
+          url: vipGroupLink,
         }],
       });
     } else {

@@ -137,19 +137,31 @@ export class ChatService {
 
     // Extract name (múltiplos padrões) - CASE INSENSITIVE
     const namePatterns = [
-      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?\s+)([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)/i,
-      /user:\s*([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)/i,
-      /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+\s+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)$/im,
+      // Pattern 1: "Meu nome é João Silva Santos", "Me chamo Maria Costa", "Sou o Carlos Eduardo"
+      // Usa [ ] (espaço literal) em vez de \s para não capturar quebras de linha
+      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?)[ ]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)/i,
+      // Pattern 2: "user: João Silva Santos" (nome direto sem gatilho)
+      /^user:[ ]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)[ ]*$/im,
+      // Pattern 3: Nome direto em linha isolada (2+ palavras, sem prefixo)
+      /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)[ ]*$/im,
     ];
 
     for (const pattern of namePatterns) {
       const match = conversationText.match(pattern);
       if (match && match[1]) {
         const possibleName = match[1].trim();
+
         // Validate it's actually a name (2+ words, not email, not phone)
+        // Also ensure it doesn't contain trigger words or other text
+        const triggerWords = ['meu nome', 'me chamo', 'sou o', 'sou a', 'assistant', 'user', 'qual', 'email', 'telefone'];
+        const containsTrigger = triggerWords.some(trigger =>
+          possibleName.toLowerCase().includes(trigger)
+        );
+
         if (possibleName.split(/\s+/).length >= 2 &&
             !possibleName.includes('@') &&
-            !/^\d+$/.test(possibleName)) {
+            !/^\d+$/.test(possibleName) &&
+            !containsTrigger) {
           leadData.name = possibleName;
           console.log('✅ Nome extraído:', possibleName);
           break;
