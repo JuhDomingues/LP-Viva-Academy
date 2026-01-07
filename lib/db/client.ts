@@ -321,6 +321,17 @@ export async function getLeadsCount(params: Omit<GetLeadsParams, 'limit' | 'offs
   return parseInt(result.rows[0]?.count || '0');
 }
 
+export async function markLeadSentToMautic(conversationId: string) {
+  const result = await sql`
+    UPDATE leads
+    SET mautic_sent_at = NOW(), updated_at = NOW()
+    WHERE conversation_id = ${conversationId} AND mautic_sent_at IS NULL
+    RETURNING *
+  `;
+
+  return result.rows[0] || null;
+}
+
 // Analytics operations
 export interface TrackEventParams {
   eventType: string;
@@ -376,6 +387,7 @@ export const db = {
   getLeadByConversationId,
   getLeads,
   getLeadsCount,
+  markLeadSentToMautic,
 
   // Analytics
   trackChatEvent,

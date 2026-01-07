@@ -103,6 +103,9 @@ CREATE TABLE IF NOT EXISTS leads (
   utm_campaign VARCHAR(255),
   referrer TEXT,
 
+  -- Mautic Integration
+  mautic_sent_at TIMESTAMP,
+
   metadata JSONB DEFAULT '{}',
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()

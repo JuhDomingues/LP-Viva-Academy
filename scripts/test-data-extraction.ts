@@ -73,42 +73,52 @@ const testConversations = [
 ];
 
 // Extraction patterns (same as in chat-service.ts)
-function extractName(conversationText: string): string | undefined {
+function extractName(messages: Array<{ role: string; content: string }>): string | undefined {
   const namePatterns = [
     // Pattern 1: "Meu nome é João Silva Santos", "Me chamo Maria Costa", "Sou o Carlos Eduardo"
-    // Usa [ ] (espaço literal) em vez de \s para não capturar quebras de linha
-    /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?)[ ]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)/i,
-    // Pattern 2: "user: João Silva Santos" (nome direto sem gatilho)
-    /^user:[ ]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)[ ]*$/im,
-    // Pattern 3: Nome direto em linha isolada (2+ palavras, sem prefixo)
-    /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)[ ]*$/im,
+    // Captura APENAS após gatilhos específicos, máximo 50 caracteres
+    /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)) +([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?: +[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+){1,3})(?:\.|,|!|\?|$)/i,
   ];
 
+  // Extract from user messages only (not assistant responses)
+  const userMessages = messages.filter(m => m.role === 'user');
+
   for (const pattern of namePatterns) {
-    const match = conversationText.match(pattern);
-    if (match && match[1]) {
-      const possibleName = match[1].trim();
+    for (const msg of userMessages) {
+      const match = msg.content.match(pattern);
+      if (match && match[1]) {
+        const possibleName = match[1].trim();
 
-      // Debug: show what was captured
-      console.log(`  [DEBUG] Pattern matched: "${match[0]}"`);
-      console.log(`  [DEBUG] Group 1 captured: "${possibleName}"`);
+        // Debug: show what was captured
+        console.log(`  [DEBUG] Pattern matched: "${match[0]}"`);
+        console.log(`  [DEBUG] Group 1 captured: "${possibleName}"`);
 
-      // Validate it's actually a name (2+ words, not email, not phone)
-      // Also ensure it doesn't contain trigger words or other text
-      const triggerWords = ['meu nome', 'me chamo', 'sou o', 'sou a', 'assistant', 'user', 'qual', 'email', 'telefone'];
-      const containsTrigger = triggerWords.some(trigger =>
-        possibleName.toLowerCase().includes(trigger)
-      );
+        // Validate it's actually a name
+        const words = possibleName.split(/\s+/);
+        const triggerWords = ['meu', 'nome', 'chamo', 'sou', 'assistant', 'user', 'qual', 'email', 'telefone', 'perfeito', 'ótimo', 'obrigad'];
+        const containsTrigger = triggerWords.some(trigger =>
+          possibleName.toLowerCase().includes(trigger)
+        );
 
-      if (
-        possibleName.split(/\s+/).length >= 2 &&
-        !possibleName.includes('@') &&
-        !/^\d+$/.test(possibleName) &&
-        !containsTrigger
-      ) {
-        return possibleName;
-      } else {
-        console.log(`  [DEBUG] Rejected: trigger=${containsTrigger}, words=${possibleName.split(/\s+/).length}`);
+        // Valid name criteria:
+        // - 2 to 4 words (first name + last name(s))
+        // - Each word 2-20 characters
+        // - No numbers, emails, or trigger words
+        // - Total length 4-50 characters
+        const isValidName = words.length >= 2 &&
+                            words.length <= 4 &&
+                            words.every(w => w.length >= 2 && w.length <= 20) &&
+                            possibleName.length >= 4 &&
+                            possibleName.length <= 50 &&
+                            !possibleName.includes('@') &&
+                            !/\d/.test(possibleName) &&
+                            !containsTrigger;
+
+        if (isValidName) {
+          return possibleName;
+        } else {
+          console.log(`  [DEBUG] Rejected: trigger=${containsTrigger}, words=${words.length}, valid=${isValidName}`);
+        }
       }
     }
   }
@@ -162,7 +172,7 @@ for (const test of testConversations) {
   console.log();
 
   // Extract data
-  const extractedName = extractName(conversationText);
+  const extractedName = extractName(test.messages);
   const extractedEmail = extractEmail(conversationText);
   const extractedPhone = extractPhone(conversationText);
 

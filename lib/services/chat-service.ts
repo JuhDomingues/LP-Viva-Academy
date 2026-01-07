@@ -139,35 +139,48 @@ export class ChatService {
     // Extract name (múltiplos padrões) - CASE INSENSITIVE
     const namePatterns = [
       // Pattern 1: "Meu nome é João Silva Santos", "Me chamo Maria Costa", "Sou o Carlos Eduardo"
-      // Usa [ ] (espaço literal) em vez de \s para não capturar quebras de linha
-      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)?)[ ]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)/i,
-      // Pattern 2: "user: João Silva Santos" (nome direto sem gatilho)
-      /^user:[ ]+([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)[ ]*$/im,
-      // Pattern 3: Nome direto em linha isolada (2+ palavras, sem prefixo)
-      /^([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?:[ ]+[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+)+)[ ]*$/im,
+      // Captura APENAS após gatilhos específicos, máximo 50 caracteres
+      /(?:meu nome (?:é|eh|e)|me chamo|sou (?:o|a)) +([A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+(?: +[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]+){1,3})(?:\.|,|!|\?|$)/i,
     ];
 
+    // Extract from user messages only (not assistant responses)
+    const userMessages = messages.filter(m => m.role === 'user');
+
     for (const pattern of namePatterns) {
-      const match = conversationText.match(pattern);
-      if (match && match[1]) {
-        const possibleName = match[1].trim();
+      for (const msg of userMessages) {
+        const match = msg.content.match(pattern);
+        if (match && match[1]) {
+          const possibleName = match[1].trim();
 
-        // Validate it's actually a name (2+ words, not email, not phone)
-        // Also ensure it doesn't contain trigger words or other text
-        const triggerWords = ['meu nome', 'me chamo', 'sou o', 'sou a', 'assistant', 'user', 'qual', 'email', 'telefone'];
-        const containsTrigger = triggerWords.some(trigger =>
-          possibleName.toLowerCase().includes(trigger)
-        );
+          // Validate it's actually a name
+          const words = possibleName.split(/\s+/);
+          const triggerWords = ['meu', 'nome', 'chamo', 'sou', 'assistant', 'user', 'qual', 'email', 'telefone', 'perfeito', 'ótimo', 'obrigad'];
+          const containsTrigger = triggerWords.some(trigger =>
+            possibleName.toLowerCase().includes(trigger)
+          );
 
-        if (possibleName.split(/\s+/).length >= 2 &&
-            !possibleName.includes('@') &&
-            !/^\d+$/.test(possibleName) &&
-            !containsTrigger) {
-          leadData.name = possibleName;
-          console.log('✅ Nome extraído:', possibleName);
-          break;
+          // Valid name criteria:
+          // - 2 to 4 words (first name + last name(s))
+          // - Each word 2-20 characters
+          // - No numbers, emails, or trigger words
+          // - Total length 4-50 characters
+          const isValidName = words.length >= 2 &&
+                              words.length <= 4 &&
+                              words.every(w => w.length >= 2 && w.length <= 20) &&
+                              possibleName.length >= 4 &&
+                              possibleName.length <= 50 &&
+                              !possibleName.includes('@') &&
+                              !/\d/.test(possibleName) &&
+                              !containsTrigger;
+
+          if (isValidName) {
+            leadData.name = possibleName;
+            console.log('✅ Nome extraído:', possibleName);
+            break;
+          }
         }
       }
+      if (leadData.name) break;
     }
 
     if (!leadData.name) {
@@ -245,7 +258,7 @@ export class ChatService {
       leadData.immigration_goals = 'Investimento';
     }
 
-    // Send to Mautic if we have complete contact data
+    // Send to Mautic if we have complete contact data AND haven't sent yet
     console.log('🔍 Extracted lead data:', {
       name: leadData.name,
       email: extractedEmail,
@@ -255,15 +268,27 @@ export class ChatService {
     });
 
     if (extractedEmail && extractedPhone && leadData.name) {
-      console.log('✅ All contact data ready, sending to Mautic...');
-      await this.sendToMautic({
-        nome: leadData.name,
-        email: extractedEmail,
-        telefone: extractedPhone,
-      }).catch(error => {
-        // Log but don't fail if Mautic integration fails
-        console.error('❌ Failed to send to Mautic:', error);
-      });
+      // Check if already sent to Mautic
+      const existingLead = await db.getLeadByConversationId(conversationId);
+      const alreadySent = existingLead?.mautic_sent_at;
+
+      if (!alreadySent) {
+        console.log('✅ All contact data ready, sending to Mautic...');
+        await this.sendToMautic({
+          nome: leadData.name,
+          email: extractedEmail,
+          telefone: extractedPhone,
+        }).then(async () => {
+          // Mark as sent to Mautic
+          await db.markLeadSentToMautic(conversationId);
+          console.log('✅ Lead marked as sent to Mautic');
+        }).catch(error => {
+          // Log but don't fail if Mautic integration fails
+          console.error('❌ Failed to send to Mautic:', error);
+        });
+      } else {
+        console.log('ℹ️  Lead already sent to Mautic at:', existingLead.mautic_sent_at);
+      }
     } else {
       console.log('⚠️  Missing contact data for Mautic:', {
         hasName: !!leadData.name,

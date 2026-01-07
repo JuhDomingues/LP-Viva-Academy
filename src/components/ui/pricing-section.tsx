@@ -24,7 +24,7 @@ export const PricingSection = ({ onCTAClick }: PricingSectionProps) => {
             <div className="text-center mb-8 sm:mb-12 mt-4">
               <div className="py-8 sm:py-12">
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary mb-4">
-                  Aguarde dia 19/01
+                  Aguarde dia 09/02
                 </h3>
                 <p className="text-xl sm:text-2xl text-white font-semibold mb-3">
                   Oferta Especial 2026
