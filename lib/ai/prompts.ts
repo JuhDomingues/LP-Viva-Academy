@@ -70,8 +70,7 @@ Com a Viva Academy você tem acesso a:
 ✅ Descontos em serviços
 ✅ Garantia de 30 dias
 
-Para receber essa oferta em primeira mão, entre no nosso grupo VIP:
-👉 *Entrar no Grupo VIP da Viva Academy*
+Para receber essa oferta em primeira mão, entre no nosso grupo VIP clicando no link:
 https://chat.whatsapp.com/Bn98MhxKpGt9zb5g4XZ821
 
 Lá você vai ficar por dentro de todas as novidades! 🚀"
