@@ -31,6 +31,12 @@ export class ChatService {
   async processMessage(options: ProcessMessageOptions): Promise<ProcessMessageResult> {
     const { sessionId, conversationId, userMessage, channel, phoneNumber } = options;
 
+    console.log('📥 Processing message:', {
+      channel,
+      hasPhoneNumber: !!phoneNumber,
+      phonePreview: phoneNumber ? phoneNumber.substring(0, 5) + '...' : 'N/A',
+    });
+
     try {
       // Save user message
       await db.saveMessage({
@@ -126,7 +132,7 @@ export class ChatService {
     return handoffKeywords.some(keyword => lowerMessage.includes(keyword));
   }
 
-  private async extractLeadData(conversationId: string, messages: ConversationMessage[], whatsappPhone?: string): Promise<LeadData> {
+  private async extractLeadData(conversationId: string, messages: ConversationMessage[], whatsappPhone?: string): Promise<LeadData & { extractedEmail?: string; extractedPhone?: string }> {
     const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
     const conversationLower = conversationText.toLowerCase();
 
@@ -187,12 +193,22 @@ export class ChatService {
       console.log('⚠️  Nome não extraído');
     }
 
-    // Extract email
-    const emailPattern = /\b([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]{2,})\b/;
-    const emailMatch = conversationText.match(emailPattern);
+    // Extract email (only from user messages, not assistant responses)
+    const emailPattern = /\b([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b/;
     let extractedEmail: string | undefined;
-    if (emailMatch) {
-      extractedEmail = emailMatch[1].toLowerCase();
+
+    // Search in user messages only to avoid capturing example emails from assistant
+    for (const msg of userMessages) {
+      const emailMatch = msg.content.match(emailPattern);
+      if (emailMatch) {
+        extractedEmail = emailMatch[1].toLowerCase();
+        console.log('✅ Email extraído:', extractedEmail);
+        break;
+      }
+    }
+
+    if (!extractedEmail) {
+      console.log('⚠️  Email não encontrado nas mensagens do usuário');
     }
 
     // Extract phone (padrões brasileiros)
@@ -264,6 +280,9 @@ export class ChatService {
       email: extractedEmail,
       phone: extractedPhone ? extractedPhone.substring(0, 5) + '...' : undefined,
       phoneSource: whatsappPhone ? 'WhatsApp Session (auto)' : extractedPhone ? 'Conversation Text' : 'Not captured',
+      hasName: !!leadData.name,
+      hasEmail: !!extractedEmail,
+      hasPhone: !!extractedPhone,
       hasAllData: !!(extractedEmail && extractedPhone && leadData.name),
     });
 
@@ -290,7 +309,13 @@ export class ChatService {
         console.log('ℹ️  Lead already sent to Mautic at:', existingLead.mautic_sent_at);
       }
     } else {
+      const missingFields = [];
+      if (!leadData.name) missingFields.push('nome');
+      if (!extractedEmail) missingFields.push('email');
+      if (!extractedPhone) missingFields.push('telefone');
+
       console.log('⚠️  Missing contact data for Mautic:', {
+        missingFields: missingFields.join(', '),
         hasName: !!leadData.name,
         hasEmail: !!extractedEmail,
         hasPhone: !!extractedPhone,
