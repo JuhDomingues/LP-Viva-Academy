@@ -31,25 +31,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('⚠️  Redis error:', error);
     }
 
-    // 2. Delete all messages
+    // 2. Delete all chat events FIRST (has foreign key to conversations)
+    const eventsResult = await sql`DELETE FROM chat_events`;
+    const eventsDeleted = eventsResult.rowCount || 0;
+    console.log(`✅ ${eventsDeleted} eventos deletados`);
+
+    // 3. Delete all messages
     const messagesResult = await sql`DELETE FROM messages`;
     const messagesDeleted = messagesResult.rowCount || 0;
     console.log(`✅ ${messagesDeleted} mensagens deletadas`);
 
-    // 3. Delete all leads
+    // 4. Delete all leads
     const leadsResult = await sql`DELETE FROM leads`;
     const leadsDeleted = leadsResult.rowCount || 0;
     console.log(`✅ ${leadsDeleted} leads deletados`);
 
-    // 4. Delete all conversations
+    // 5. Delete all conversations
     const conversationsResult = await sql`DELETE FROM conversations`;
     const conversationsDeleted = conversationsResult.rowCount || 0;
     console.log(`✅ ${conversationsDeleted} conversas deletadas`);
-
-    // 5. Delete all chat events
-    const eventsResult = await sql`DELETE FROM chat_events`;
-    const eventsDeleted = eventsResult.rowCount || 0;
-    console.log(`✅ ${eventsDeleted} eventos deletados`);
 
     // 6. Delete all sessions
     const sessionsResult = await sql`DELETE FROM chat_sessions`;
