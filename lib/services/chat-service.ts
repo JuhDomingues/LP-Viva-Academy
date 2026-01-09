@@ -181,12 +181,62 @@ export class ChatService {
 
           if (isValidName) {
             leadData.name = possibleName;
-            console.log('✅ Nome extraído:', possibleName);
+            console.log('✅ Nome extraído (com gatilho):', possibleName);
             break;
           }
         }
       }
       if (leadData.name) break;
+    }
+
+    // Pattern 2: Direct name response (when assistant asks for name)
+    // Fallback for when user responds directly without trigger words
+    if (!leadData.name) {
+      for (let i = 0; i < messages.length - 1; i++) {
+        const current = messages[i];
+        const next = messages[i + 1];
+
+        // Check if assistant asked for name and user responded
+        if (
+          current.role === 'assistant' &&
+          /\b(?:nome|name|chama)\b/i.test(current.content) &&
+          next.role === 'user'
+        ) {
+          const possibleName = next.content.trim();
+          const words = possibleName.split(/\s+/);
+
+          // Negative keywords that indicate this is NOT a name
+          const negativeKeywords = [
+            'meu', 'nome', 'chamo', 'sou', 'assistant', 'user', 'qual', 'email',
+            'telefone', 'perfeito', 'ótimo', 'obrigad', 'sim', 'não', 'ok', 'tudo',
+            'bem', 'oi', 'olá', 'quero', 'preciso', 'gostaria', '@', 'http', 'www'
+          ];
+
+          const containsNegative = negativeKeywords.some(keyword =>
+            possibleName.toLowerCase().includes(keyword)
+          );
+
+          // Valid direct name response criteria:
+          // - 2 to 4 words (first name + last name(s))
+          // - Each word 2-20 characters, starts with letter
+          // - No numbers, emails, URLs, or negative keywords
+          // - Total length 4-50 characters
+          const isValidDirectName = words.length >= 2 &&
+                                    words.length <= 4 &&
+                                    words.every(w => w.length >= 2 && w.length <= 20 && /^[A-ZÁÀÂÃÉÈÊÍÏÓÔÕÖÚÇÑa-záàâãéèêíïóôõöúçñ]/.test(w)) &&
+                                    possibleName.length >= 4 &&
+                                    possibleName.length <= 50 &&
+                                    !possibleName.includes('@') &&
+                                    !/\d/.test(possibleName) &&
+                                    !containsNegative;
+
+          if (isValidDirectName) {
+            leadData.name = possibleName;
+            console.log('✅ Nome extraído (resposta direta):', possibleName);
+            break;
+          }
+        }
+      }
     }
 
     if (!leadData.name) {
@@ -292,19 +342,31 @@ export class ChatService {
       const alreadySent = existingLead?.mautic_sent_at;
 
       if (!alreadySent) {
-        console.log('✅ All contact data ready, sending to Mautic...');
-        await this.sendToMautic({
+        console.log('✅ All contact data ready, sending to Mautic...', {
           nome: leadData.name,
           email: extractedEmail,
-          telefone: extractedPhone,
-        }).then(async () => {
+          telefone: extractedPhone ? extractedPhone.substring(0, 5) + '...' : 'N/A',
+        });
+
+        try {
+          await this.sendToMautic({
+            nome: leadData.name,
+            email: extractedEmail,
+            telefone: extractedPhone,
+          });
+
           // Mark as sent to Mautic
           await db.markLeadSentToMautic(conversationId);
-          console.log('✅ Lead marked as sent to Mautic');
-        }).catch(error => {
-          // Log but don't fail if Mautic integration fails
-          console.error('❌ Failed to send to Mautic:', error);
-        });
+          console.log('✅ Lead successfully sent and marked in Mautic');
+        } catch (error: any) {
+          // Log detailed error but don't fail the conversation
+          console.error('❌ Failed to send to Mautic:', {
+            error: error.message,
+            stack: error.stack,
+            response: error.response?.data,
+            status: error.response?.status,
+          });
+        }
       } else {
         console.log('ℹ️  Lead already sent to Mautic at:', existingLead.mautic_sent_at);
       }
